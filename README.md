@@ -36,3 +36,4 @@ This runs the PWA with the generated service worker.
 - [ ] Provide a Docker container to deploy the app on a homelab server
 - [ ] Exercise the PWA experience on a phone to validate install/offline behavior
 - [ ] Expand the documentation with usage notes and deployment instructions
+- [ ] Add dark mode styling toggle for both the editor and preview
