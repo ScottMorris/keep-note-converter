@@ -168,7 +168,7 @@ function markupToPlainText(markup: string): string {
   }
 
   const tmp = document.createElement("div");
-  tmp.innerHTML = markup
+  tmp.innerHTML = injectHeadingSeparators(markup)
     .replace(/<br\s*\/?>/gi, "\n")
     .replace(/<\/p>/gi, "\n")
     .replace(/<\/h[12]>/gi, "\n");
@@ -199,4 +199,11 @@ function isEffectivelyEmpty(fragment: string): boolean {
     .replace(/\s+/g, "");
 
   return stripped.length === 0;
+}
+
+function injectHeadingSeparators(markup: string): string {
+  return markup.replace(/(?:^|<\/(p|ol|ul)>)(\s*<h[12][^>]*>)/gi, (_match, closingTag, heading) => {
+    const needsSpacing = closingTag !== undefined;
+    return `${needsSpacing ? "<p>&nbsp;</p>" : ""}${heading}`;
+  });
 }
