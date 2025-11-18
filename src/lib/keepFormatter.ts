@@ -172,10 +172,10 @@ function markupToPlainText(markup: string): string {
   const tmp = document.createElement("div");
   tmp.innerHTML = markup
     .replace(/<br\s*\/?>/gi, "\n")
-    .replace(/<\/p>/gi, "\n\n")
-    .replace(/<\/h[12]>/gi, "\n\n");
+    .replace(/<\/p>/gi, "\n")
+    .replace(/<\/h[12]>/gi, "\n");
 
-  return tmp.innerText.replace(/\u00a0/g, " ").replace(/\n{3,}/g, "\n\n").trim();
+  return tmp.innerText.replace(/\u00a0/g, " ").replace(/\n{2,}/g, "\n\n").trim();
 }
 
 function escapeHtml(value: string): string {
