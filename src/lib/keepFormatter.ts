@@ -1,7 +1,14 @@
+export type FormatterDiagnostic =
+  | { kind: "unsupported-tag"; tag: string; snippet?: string }
+  | { kind: "removed-element"; tag: string }
+  | { kind: "downgraded-heading"; from: string; to: string }
+  | { kind: "list-flattened"; depth: number };
+
 type ConvertedMarkup = {
   html: string;
   keepHtml: string;
   plainText: string;
+  diagnostics: FormatterDiagnostic[];
 };
 
 const inlineTagMap: Record<string, string> = {
@@ -26,18 +33,31 @@ const blockTags = new Set([
   "UL",
 ]);
 
+const unsupportedStructureTags = new Set([
+  "TABLE",
+  "IMG",
+  "PICTURE",
+  "VIDEO",
+  "AUDIO",
+  "CANVAS",
+  "IFRAME",
+  "SVG",
+  "FIGURE",
+]);
+
 export function convertRichTextToKeepMarkup(rawHtml: string): ConvertedMarkup {
   const normalizedInput = rawHtml.replace(/\u00a0/g, " ");
   const textOnly = normalizedInput.replace(/<[^>]*>/g, "").trim();
 
   if (!textOnly) {
-    return { html: "", keepHtml: "", plainText: "" };
+    return { html: "", keepHtml: "", plainText: "", diagnostics: [] };
   }
 
   const parser = new DOMParser();
   const doc = parser.parseFromString(`<div>${normalizedInput}</div>`, "text/html");
+  const diagnostics: FormatterDiagnostic[] = [];
   const fragments = Array.from(doc.body.childNodes)
-    .map((node) => serializeNode(node, false, 0))
+    .map((node) => serializeNode(node, false, 0, diagnostics))
     .filter(Boolean)
     .join("");
 
@@ -45,10 +65,15 @@ export function convertRichTextToKeepMarkup(rawHtml: string): ConvertedMarkup {
   const keepHtml = convertToKeepClipboardHtml(cleanHtml);
   const plainText = markupToPlainText(cleanHtml);
 
-  return { html: cleanHtml, keepHtml, plainText };
+  return { html: cleanHtml, keepHtml, plainText, diagnostics };
 }
 
-function serializeNode(node: Node, inlineContext: boolean, depth: number): string {
+function serializeNode(
+  node: Node,
+  inlineContext: boolean,
+  depth: number,
+  diagnostics: FormatterDiagnostic[],
+): string {
   if (node.nodeType === Node.TEXT_NODE) {
     const value = (node.textContent ?? "").replace(/\s+/g, " ");
     return escapeHtml(value);
@@ -62,18 +87,26 @@ function serializeNode(node: Node, inlineContext: boolean, depth: number): strin
   const tagName = element.tagName.toUpperCase();
 
   if (tagName === "SCRIPT" || tagName === "STYLE") {
+    diagnostics.push({ kind: "removed-element", tag: tagName.toLowerCase() });
     return "";
   }
 
   if (inlineTagMap[tagName]) {
     const tag = inlineTagMap[tagName];
-    const inner = serializeChildren(element, true, depth);
+    const inner = serializeChildren(element, true, depth, diagnostics);
     return inner ? `<${tag}>${inner}</${tag}>` : "";
   }
 
   if (/^H[1-6]$/.test(tagName)) {
     const level = tagName === "H1" ? "h1" : "h2";
-    const inner = serializeChildren(element, true, depth);
+    if (tagName !== "H1" && tagName !== "H2") {
+      diagnostics.push({
+        kind: "downgraded-heading",
+        from: tagName.toLowerCase(),
+        to: level,
+      });
+    }
+    const inner = serializeChildren(element, true, depth, diagnostics);
     return inner ? `<${level}>${inner}</${level}>` : "";
   }
 
@@ -82,21 +115,34 @@ function serializeNode(node: Node, inlineContext: boolean, depth: number): strin
   }
 
   if (tagName === "OL" || tagName === "UL") {
-    return convertList(element, tagName === "OL", depth);
+    return convertList(element, tagName === "OL", depth, diagnostics);
   }
 
   if (blockTags.has(tagName) && !inlineContext) {
-    const inner = serializeChildren(element, false, depth);
+    const inner = serializeChildren(element, false, depth, diagnostics);
     return wrapParagraph(inner);
   }
 
-  const inner = serializeChildren(element, inlineContext, depth);
+  if (unsupportedStructureTags.has(tagName)) {
+    diagnostics.push({
+      kind: "unsupported-tag",
+      tag: tagName.toLowerCase(),
+      snippet: element.outerHTML?.slice(0, 120),
+    });
+  }
+
+  const inner = serializeChildren(element, inlineContext, depth, diagnostics);
   return inlineContext ? inner : wrapParagraph(inner);
 }
 
-function serializeChildren(element: Element, inlineContext: boolean, depth: number): string {
+function serializeChildren(
+  element: Element,
+  inlineContext: boolean,
+  depth: number,
+  diagnostics: FormatterDiagnostic[],
+): string {
   const joined = Array.from(element.childNodes)
-    .map((child) => serializeNode(child, inlineContext, depth))
+    .map((child) => serializeNode(child, inlineContext, depth, diagnostics))
     .join("");
 
   return joined;
@@ -114,7 +160,16 @@ function wrapParagraph(content: string): string {
   return `<p>${content.trim()}</p>`;
 }
 
-function convertList(listElement: Element, isOrdered: boolean, depth: number): string {
+function convertList(
+  listElement: Element,
+  isOrdered: boolean,
+  depth: number,
+  diagnostics: FormatterDiagnostic[],
+): string {
+  if (depth > 0) {
+    diagnostics.push({ kind: "list-flattened", depth });
+  }
+
   const items = Array.from(listElement.children).filter(
     (child) => child.tagName && child.tagName.toUpperCase() === "LI",
   );
@@ -148,7 +203,15 @@ function convertList(listElement: Element, isOrdered: boolean, depth: number): s
     fragments.push(`<p>${indent}${prefix}${lineContent}</p>`);
 
     nested.forEach((nestedList) => {
-      fragments.push(convertList(nestedList, nestedList.tagName.toUpperCase() === "OL", depth + 1));
+      diagnostics.push({ kind: "list-flattened", depth: depth + 1 });
+      fragments.push(
+        convertList(
+          nestedList,
+          nestedList.tagName.toUpperCase() === "OL",
+          depth + 1,
+          diagnostics,
+        ),
+      );
     });
 
     current += 1;

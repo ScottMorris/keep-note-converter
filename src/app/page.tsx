@@ -8,7 +8,10 @@ import {
   useState,
   type ClipboardEvent,
 } from "react";
-import { convertRichTextToKeepMarkup } from "../lib/keepFormatter";
+import {
+  FormatterDiagnostic,
+  convertRichTextToKeepMarkup,
+} from "../lib/keepFormatter";
 import { convertMarkdownToHtml } from "../lib/markdown";
 
 type CopyState = "idle" | "copied" | "error";
@@ -35,6 +38,49 @@ const sampleHtml = `
   </ul>
 `;
 
+type DiagnosticMeta = {
+  title: string;
+  description: string;
+  severity: "info" | "warning";
+};
+
+function describeDiagnostic(diagnostic: FormatterDiagnostic): DiagnosticMeta {
+  switch (diagnostic.kind) {
+    case "unsupported-tag":
+      return {
+        title: `Unsupported <${diagnostic.tag}> element`,
+        description:
+          "This element was flattened because Google Keep ignores it. Copy any important content manually before pasting.",
+        severity: "warning",
+      };
+    case "removed-element":
+      return {
+        title: `Removed <${diagnostic.tag}> block`,
+        description:
+          "Scripts and style tags are stripped out for safety before sending the note to Keep.",
+        severity: "warning",
+      };
+    case "downgraded-heading":
+      return {
+        title: `${diagnostic.from.toUpperCase()} converted to ${diagnostic.to.toUpperCase()}`,
+        description: "Keep supports only H1 and H2, so deeper headings are normalized automatically.",
+        severity: "info",
+      };
+    case "list-flattened":
+      return {
+        title: `Nested list flattened (level ${diagnostic.depth + 1})`,
+        description: "Deeper bullet levels become four-space indented paragraphs to stay compatible with Keep.",
+        severity: "info",
+      };
+    default:
+      return {
+        title: "Converted formatting",
+        description: "Some formatting was adjusted for compatibility.",
+        severity: "info",
+      };
+  }
+}
+
 export default function Home() {
   const editorRef = useRef<HTMLDivElement>(null);
   const [inputHtml, setInputHtml] = useState("");
@@ -50,6 +96,9 @@ export default function Home() {
     () => convertRichTextToKeepMarkup(inputHtml),
     [inputHtml],
   );
+
+  const diagnostics = converted.diagnostics;
+  const hasDiagnostics = diagnostics.length > 0;
 
   const handleEditorInput = () => {
     setInputHtml(editorRef.current?.innerHTML ?? "");
@@ -384,6 +433,63 @@ export default function Home() {
                   </p>
                 )}
               </div>
+            </div>
+
+            <div className="rounded-2xl border border-slate-100 bg-slate-50/70 p-4">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p className="text-sm font-semibold text-slate-900">
+                    Formatter diagnostics
+                  </p>
+                  <p className="text-xs text-slate-500">
+                    We&apos;ll flag unsupported elements as you paste.
+                  </p>
+                </div>
+                <span
+                  className={`rounded-full px-3 py-1 text-xs font-semibold ${hasDiagnostics ? "bg-amber-100 text-amber-700" : "bg-emerald-50 text-emerald-700"}`}
+                >
+                  {hasDiagnostics
+                    ? `${diagnostics.length} ${diagnostics.length === 1 ? "issue" : "issues"}`
+                    : "All clear"}
+                </span>
+              </div>
+              {hasDiagnostics ? (
+                <ul className="mt-4 space-y-3">
+                  {diagnostics.map((diagnostic, index) => {
+                    const meta = describeDiagnostic(diagnostic);
+                    const badgeClass =
+                      meta.severity === "warning"
+                        ? "bg-amber-100 text-amber-800"
+                        : "bg-slate-200 text-slate-700";
+                    return (
+                      <li
+                        key={`${diagnostic.kind}-${index}`}
+                        className="rounded-2xl border border-white/60 bg-white/90 p-3 text-sm text-slate-700"
+                      >
+                        <div className="flex items-center justify-between gap-3">
+                          <p className="font-semibold text-slate-900">{meta.title}</p>
+                          <span
+                            className={`rounded-full px-3 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${badgeClass}`}
+                          >
+                            {meta.severity === "warning" ? "Action" : "FYI"}
+                          </span>
+                        </div>
+                        <p className="mt-1 text-xs text-slate-500">{meta.description}</p>
+                        {diagnostic.kind === "unsupported-tag" && diagnostic.snippet ? (
+                          <code className="mt-2 block truncate rounded-xl bg-slate-900/5 px-3 py-2 text-[11px] text-slate-700">
+                            {diagnostic.snippet}…
+                          </code>
+                        ) : null}
+                      </li>
+                    );
+                  })}
+                </ul>
+              ) : (
+                <p className="mt-4 text-sm text-slate-500">
+                  No compatibility issues detected yet. Paste unsupported content to see
+                  suggested fixes here.
+                </p>
+              )}
             </div>
 
             <div>
