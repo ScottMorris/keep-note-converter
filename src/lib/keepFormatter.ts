@@ -103,8 +103,15 @@ function serializeChildren(element: Element, inlineContext: boolean, depth: numb
 }
 
 function wrapParagraph(content: string): string {
-  const trimmed = content.trim();
-  return trimmed ? `<p>${trimmed}</p>` : "";
+  if (!content) {
+    return "";
+  }
+
+  if (isEffectivelyEmpty(content)) {
+    return "";
+  }
+
+  return `<p>${content.trim()}</p>`;
 }
 
 function convertList(listElement: Element, isOrdered: boolean, depth: number): string {
@@ -152,7 +159,7 @@ function convertList(listElement: Element, isOrdered: boolean, depth: number): s
 
 function cleanupOutput(markup: string): string {
   return markup
-    .replace(/<p>\s*<\/p>/g, "")
+    .replace(/<p>(?:\s|&nbsp;|<br\s*\/?>)*<\/p>/gi, "")
     .replace(/\s+(<\/?(?:h1|h2|p|b|i|u|br)[^>]*>)/gi, "$1")
     .trim();
 }
@@ -178,4 +185,14 @@ function escapeHtml(value: string): string {
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
+}
+
+function isEffectivelyEmpty(fragment: string): boolean {
+  const stripped = fragment
+    .replace(/<br\s*\/?>/gi, "")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/<[^>]+>/g, "")
+    .replace(/\s+/g, "");
+
+  return stripped.length === 0;
 }
