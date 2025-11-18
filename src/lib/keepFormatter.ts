@@ -48,9 +48,7 @@ export function convertRichTextToKeepMarkup(rawHtml: string): ConvertedMarkup {
 
 function serializeNode(node: Node, inlineContext: boolean, depth: number): string {
   if (node.nodeType === Node.TEXT_NODE) {
-    const value = (node.textContent ?? "").replace(/\s+/g, (match) =>
-      match.includes("\n") ? "\n" : " "
-    );
+    const value = (node.textContent ?? "").replace(/\s+/g, " ");
     return escapeHtml(value);
   }
 
@@ -175,7 +173,13 @@ function markupToPlainText(markup: string): string {
     .replace(/<\/p>/gi, "\n")
     .replace(/<\/h[12]>/gi, "\n");
 
-  return tmp.innerText.replace(/\u00a0/g, " ").replace(/\n{2,}/g, "\n\n").trim();
+  const textContent = tmp.innerText.replace(/\u00a0/g, " ");
+  const normalizedLines = textContent
+    .split("\n")
+    .map((line) => (line.startsWith("    ") ? line : line.replace(/^\s+/, "")))
+    .join("\n");
+
+  return normalizedLines.replace(/\n{2,}/g, "\n\n").trim();
 }
 
 function escapeHtml(value: string): string {
