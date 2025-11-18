@@ -202,7 +202,10 @@ function isEffectivelyEmpty(fragment: string): boolean {
 }
 
 function injectHeadingSeparators(markup: string): string {
-  return markup.replace(/(?:^|<\/p>|<\/ol>|<\/ul>)(\s*(?:<[^>]+>)*)?(\s*<h[12][^>]*>)/gi, (_match, _closing, wrappers = "", heading = "") => {
-    return `<p>&nbsp;</p>${wrappers}${heading}`;
-  });
+  let updated = markup.replace(
+    /(<\/(?:p|ol|ul)>)(\s*)(<h[12][^>]*>)/gi,
+    "$1<p>&nbsp;</p>$2$3",
+  );
+  updated = updated.replace(/^(\s*<h[12][^>]*>)/i, "<p>&nbsp;</p>$1");
+  return updated;
 }
