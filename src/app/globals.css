@@ -60,6 +60,43 @@ body {
   margin: 0.25rem 0;
 }
 
+.editor-surface h1,
+.editor-surface h2,
+.editor-surface h3,
+.editor-surface h4,
+.editor-surface h5,
+.editor-surface h6 {
+  font-weight: 600;
+  margin: 1rem 0 0.4rem;
+  line-height: 1.2;
+}
+
+.editor-surface h1 {
+  font-size: 1.75rem;
+}
+
+.editor-surface h2 {
+  font-size: 1.4rem;
+}
+
+.editor-surface h3 {
+  font-size: 1.25rem;
+}
+
+.editor-surface h4 {
+  font-size: 1.1rem;
+}
+
+.editor-surface h5 {
+  font-size: 1rem;
+}
+
+.editor-surface h6 {
+  font-size: 0.95rem;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
 .editor-surface:focus-visible {
   outline: none;
 }
