@@ -1,5 +1,6 @@
 type ConvertedMarkup = {
   html: string;
+  keepHtml: string;
   plainText: string;
 };
 
@@ -30,7 +31,7 @@ export function convertRichTextToKeepMarkup(rawHtml: string): ConvertedMarkup {
   const textOnly = normalizedInput.replace(/<[^>]*>/g, "").trim();
 
   if (!textOnly) {
-    return { html: "", plainText: "" };
+    return { html: "", keepHtml: "", plainText: "" };
   }
 
   const parser = new DOMParser();
@@ -41,9 +42,10 @@ export function convertRichTextToKeepMarkup(rawHtml: string): ConvertedMarkup {
     .join("");
 
   const cleanHtml = cleanupOutput(fragments);
+  const keepHtml = convertToKeepClipboardHtml(cleanHtml);
   const plainText = markupToPlainText(cleanHtml);
 
-  return { html: cleanHtml, plainText };
+  return { html: cleanHtml, keepHtml, plainText };
 }
 
 function serializeNode(node: Node, inlineContext: boolean, depth: number): string {
@@ -97,7 +99,7 @@ function serializeChildren(element: Element, inlineContext: boolean, depth: numb
     .map((child) => serializeNode(child, inlineContext, depth))
     .join("");
 
-  return inlineContext ? joined : joined.trim();
+  return joined;
 }
 
 function wrapParagraph(content: string): string {
@@ -158,7 +160,10 @@ function convertList(listElement: Element, isOrdered: boolean, depth: number): s
 function cleanupOutput(markup: string): string {
   return markup
     .replace(/<p>(?:\s|&nbsp;|<br\s*\/?>)*<\/p>/gi, "")
-    .replace(/\s+(<\/?(?:h1|h2|p|b|i|u|br)[^>]*>)/gi, "$1")
+    .replace(/(<p[^>]*>)(\s+)/gi, "$1")
+    .replace(/(<h[12][^>]*>)(\s+)/gi, "$1")
+    .replace(/(<br\s*\/?>)\s+/gi, "$1")
+    .replace(/\s+(<\/?(?:h1|h2|p|br)[^>]*>)/gi, "$1")
     .trim();
 }
 
@@ -208,4 +213,49 @@ function injectHeadingSeparators(markup: string): string {
   );
   updated = updated.replace(/^(\s*<h[12][^>]*>)/i, "<p>&nbsp;</p>$1");
   return updated;
+}
+
+const KEEP_BLOCK_STYLE = "line-height:1.38;margin-top:0pt;margin-bottom:0pt;";
+const KEEP_TEXT_BASE =
+  "font-size:11pt;font-family:'Google Sans Text';color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;";
+const KEEP_H1_TEXT =
+  "font-size:15pt;font-family:'Google Sans';color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;";
+const KEEP_H2_TEXT =
+  "font-size:13.5pt;font-family:'Google Sans';color:#000000;background-color:transparent;font-weight:400;font-style:normal;font-variant:normal;text-decoration:none;vertical-align:baseline;white-space:pre;white-space:pre-wrap;";
+
+function convertToKeepClipboardHtml(markup: string): string {
+  if (!markup) {
+    return "";
+  }
+
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(`<div>${markup}</div>`, "text/html");
+  const blocks = Array.from(doc.body.querySelectorAll("p,h1,h2"));
+
+  blocks.forEach((block) => {
+    const tag = block.tagName.toLowerCase();
+    const spanStyle =
+      tag === "h1" ? KEEP_H1_TEXT : tag === "h2" ? KEEP_H2_TEXT : KEEP_TEXT_BASE;
+    block.setAttribute("dir", "ltr");
+    block.setAttribute("style", KEEP_BLOCK_STYLE);
+    wrapChildrenWithSpan(block, spanStyle);
+  });
+
+  return doc.body.innerHTML;
+}
+
+function wrapChildrenWithSpan(block: Element, spanStyle: string) {
+  const doc = block.ownerDocument;
+  if (!doc) {
+    return;
+  }
+
+  const wrapper = doc.createElement("span");
+  wrapper.setAttribute("style", spanStyle);
+
+  while (block.firstChild) {
+    wrapper.appendChild(block.firstChild);
+  }
+
+  block.appendChild(wrapper);
 }

@@ -64,7 +64,10 @@ export default function Home() {
         navigator.clipboard &&
         "write" in navigator.clipboard
       ) {
-        const htmlBlob = new Blob([converted.html], { type: "text/html" });
+        const htmlBlob = new Blob(
+          [converted.keepHtml || converted.html],
+          { type: "text/html" },
+        );
         const textBlob = new Blob(
           [converted.plainText || converted.html.replace(/<[^>]*>/g, "")],
           { type: "text/plain" },
