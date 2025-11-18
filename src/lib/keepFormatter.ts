@@ -71,8 +71,8 @@ function serializeNode(node: Node, inlineContext: boolean, depth: number): strin
     return inner ? `<${tag}>${inner}</${tag}>` : "";
   }
 
-  if (tagName === "H1" || tagName === "H2") {
-    const level = tagName.toLowerCase();
+  if (/^H[1-6]$/.test(tagName)) {
+    const level = tagName === "H1" ? "h1" : "h2";
     const inner = serializeChildren(element, true, depth);
     return inner ? `<${level}>${inner}</${level}>` : "";
   }
