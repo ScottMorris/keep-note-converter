@@ -29,3 +29,10 @@ npm start
 ```
 
 This runs the PWA with the generated service worker.
+
+### Next steps (internal)
+
+- [ ] Add Markdown paste support that converts directly into Keep-friendly formatting
+- [ ] Provide a Docker container to deploy the app on a homelab server
+- [ ] Exercise the PWA experience on a phone to validate install/offline behavior
+- [ ] Expand the documentation with usage notes and deployment instructions
