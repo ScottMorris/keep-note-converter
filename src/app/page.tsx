@@ -354,7 +354,7 @@ export default function Home() {
               type="button"
               onClick={copyRichText}
               disabled={!converted.html}
-              className={`inline-flex items-center justify-center rounded-2xl px-6 py-3 text-base font-semibold shadow-lg transition disabled:cursor-not-allowed ${isDark ? "bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 text-slate-950 shadow-amber-200/30 hover:from-amber-300 hover:to-amber-400 disabled:from-slate-700 disabled:to-slate-700 disabled:text-slate-500" : "bg-amber-500 text-white shadow-amber-200 hover:bg-amber-600 disabled:bg-amber-200"}`}
+              className={`inline-flex items-center justify-center rounded-2xl px-6 py-3 text-base font-semibold shadow-lg transition disabled:cursor-not-allowed ${isDark ? "bg-gradient-to-r from-indigo-400 via-indigo-300 to-sky-400 text-slate-950 shadow-indigo-500/40 hover:from-indigo-300 hover:to-sky-400 disabled:from-slate-800 disabled:to-slate-800 disabled:text-slate-600" : "bg-amber-500 text-white shadow-amber-200 hover:bg-amber-600 disabled:bg-amber-200"}`}
             >
               {richCopyState === "copied"
                 ? "Copied to clipboard"
