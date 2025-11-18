@@ -68,7 +68,6 @@ export default function Home() {
     const frame = window.requestAnimationFrame(() => {
       setTheme(initialTheme);
     });
-
     const handleChange = (event: MediaQueryListEvent) => {
       if (userPreference.current) {
         return;
@@ -358,7 +357,7 @@ export default function Home() {
               type="button"
               onClick={copyRichText}
               disabled={!converted.html}
-              className={`inline-flex items-center justify-center rounded-2xl px-6 py-3 text-base font-semibold shadow-lg transition disabled:cursor-not-allowed ${isDark ? "bg-gradient-to-r from-indigo-400 via-indigo-300 to-sky-400 text-slate-950 shadow-indigo-500/40 hover:from-indigo-300 hover:to-sky-400 disabled:from-slate-800 disabled:to-slate-800 disabled:text-slate-600" : "bg-amber-500 text-white shadow-amber-200 hover:bg-amber-600 disabled:bg-amber-200"}`}
+              className={`inline-flex items-center justify-center rounded-2xl px-6 py-3 text-base font-semibold shadow-lg transition disabled:cursor-not-allowed ${isDark ? "border border-indigo-400/30 bg-gradient-to-r from-indigo-600 via-blue-600 to-cyan-500 text-white shadow-indigo-950/60 hover:from-indigo-500 hover:via-sky-500 hover:to-cyan-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/70 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 disabled:border-slate-800 disabled:from-slate-900 disabled:via-slate-900 disabled:to-slate-900 disabled:text-slate-500" : "bg-amber-500 text-white shadow-amber-200 hover:bg-amber-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-200/70 focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:bg-amber-200"}`}
             >
               {richCopyState === "copied"
                 ? "Copied to clipboard"
