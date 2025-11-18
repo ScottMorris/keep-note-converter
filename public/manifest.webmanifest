@@ -1,0 +1,21 @@
+{
+  "name": "Keep Note Converter",
+  "short_name": "Keep Converter",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fefefe",
+  "theme_color": "#f5a623",
+  "description": "Convert rich text into Google Keep friendly formatting and copy it in one tap.",
+  "icons": [
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
