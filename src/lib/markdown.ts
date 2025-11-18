@@ -11,6 +11,6 @@ export function convertMarkdownToHtml(markdown: string): string {
     return "";
   }
 
-  const normalized = markdown.replace(/\r\n?/g, "\n").trim();
+  const normalized = markdown.replace(/\r\n?/g, "\n");
   return markdownParser.render(normalized);
 }
