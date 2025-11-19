@@ -42,10 +42,30 @@ npm start
 
 This runs the PWA with the generated service worker.
 
+### Docker deployment
+
+You can deploy the converter as a container on a homelab server or any Docker-capable host.
+
+1. Build the production image:
+
+   ```bash
+   docker build -t keep-note-converter .
+   ```
+
+2. Run the container and publish port 3000:
+
+   ```bash
+   docker run -p 3000:3000 keep-note-converter
+   ```
+
+   The app is stateless, so there is no persistent storage to mount. Provide optional environment variables (e.g., `NEXT_DISABLE_PWA=true`) with `-e` flags if you want to tweak runtime behavior. Visit `http://localhost:3000` (or the server IP) to access the UI.
+
+3. For homelab deployments, consider running the container under a process supervisor (Docker Compose, systemd, etc.) and fronting it with a reverse proxy/HTTPS terminator if exposing it outside your LAN.
+
 ### Next steps (internal)
 
 - [ ] Add Markdown paste support that converts directly into Keep-friendly formatting
-- [ ] Provide a Docker container to deploy the app on a homelab server
+- [x] Provide a Docker container to deploy the app on a homelab server
 - [ ] Exercise the PWA experience on a phone to validate install/offline behavior
 - [x] Expand the documentation with usage notes and deployment instructions
 - [x] Add dark mode styling toggle for both the editor and preview (plus a high-contrast Keep copy button)
