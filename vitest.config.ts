@@ -10,6 +10,9 @@ export default defineConfig({
     setupFiles: [path.join(__dirname, "vitest.setup.ts")],
     globals: true,
     css: false,
+    pool: "threads",
+    include: ["src/**/*.test.{js,jsx,ts,tsx}", "src/**/*.spec.{js,jsx,ts,tsx}"],
+    exclude: ["tests/**"],
   },
   resolve: {
     alias: {
