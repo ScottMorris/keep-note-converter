@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -6,7 +6,6 @@ export const metadata: Metadata = {
   description:
     "Convert any pasted rich text into Google Keep friendly formatting and grab it in a single click.",
   manifest: "/manifest.webmanifest",
-  themeColor: "#f5a623",
   icons: {
     icon: [
       { url: "/icons/icon-192x192.png", type: "image/png", sizes: "192x192" },
@@ -14,6 +13,10 @@ export const metadata: Metadata = {
     ],
     apple: "/icons/icon-192x192.png",
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#f5a623",
 };
 
 export default function RootLayout({
