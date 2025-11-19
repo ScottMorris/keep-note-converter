@@ -42,6 +42,21 @@ npm start
 
 This runs the PWA with the generated service worker.
 
+### Testing
+
+Unit tests are powered by Vitest and the end-to-end suite uses Playwright:
+
+```bash
+npm test        # unit tests
+npm run e2e     # Playwright suite (Chromium + Firefox)
+```
+
+If you haven’t used Playwright on your machine before, install the browser binaries once before running `npm run e2e`:
+
+```bash
+npx playwright install
+```
+
 ### Next steps (internal)
 
 - [ ] Add Markdown paste support that converts directly into Keep-friendly formatting
