@@ -305,14 +305,14 @@ export default function Home() {
                   role="switch"
                   aria-checked={markdownMode}
                   onClick={() => setMarkdownMode((value) => !value)}
-                  className={`inline-flex items-center gap-2 rounded-full border px-4 py-1 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 ${markdownMode ? "border-amber-400 bg-amber-50 text-amber-800" : "border-slate-200 bg-white text-slate-600"}`}
+                  className={`inline-flex items-center gap-2 rounded-full border px-4 py-1 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 ${markdownMode ? (isDark ? "border-amber-400/70 bg-slate-900 text-amber-200" : "border-amber-400 bg-amber-50 text-amber-800") : isDark ? "border-slate-700 bg-slate-900/50 text-slate-200" : "border-slate-200 bg-white text-slate-600"}`}
                 >
                   <span
                     aria-hidden="true"
-                    className={`relative inline-flex h-5 w-9 items-center rounded-full transition ${markdownMode ? "bg-amber-500" : "bg-slate-300"}`}
+                    className={`relative inline-flex h-5 w-9 items-center rounded-full transition ${markdownMode ? (isDark ? "bg-amber-400" : "bg-amber-500") : isDark ? "bg-slate-600" : "bg-slate-300"}`}
                   >
                     <span
-                      className={`inline-block h-4 w-4 rounded-full bg-white transition ${markdownMode ? "translate-x-4" : "translate-x-1"}`}
+                      className={`inline-block h-4 w-4 rounded-full transition ${markdownMode ? "translate-x-4 bg-white" : isDark ? "translate-x-1 bg-slate-200" : "translate-x-1 bg-white"}`}
                     />
                   </span>
                   Markdown paste
