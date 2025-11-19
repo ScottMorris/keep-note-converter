@@ -13,6 +13,7 @@ A lightweight PWA that takes any pasted rich text and converts it into formattin
 - Copy the converted note with one click:
   - Rich text copy emits Keep-formatted HTML (matching its clipboard schema) so pastes keep their styles.
   - Plain text copy removes markup while keeping list/heading spacing intact.
+- Theme toggle follows your system preference first, then lets you hop between "Sunlit" and "Starlit" palettes whenever you feel like it.
 - Installable PWA powered by `@ducanh2912/next-pwa`, with manifest + icons, so it can live on your phone or desktop docked like a native app.
 
 ### Development
@@ -47,4 +48,4 @@ This runs the PWA with the generated service worker.
 - [ ] Provide a Docker container to deploy the app on a homelab server
 - [ ] Exercise the PWA experience on a phone to validate install/offline behavior
 - [x] Expand the documentation with usage notes and deployment instructions
-- [ ] Add dark mode styling toggle for both the editor and preview
+- [x] Add dark mode styling toggle for both the editor and preview (plus a high-contrast Keep copy button)
