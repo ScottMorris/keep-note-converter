@@ -33,18 +33,7 @@ export default function Home() {
   const [richCopyState, setRichCopyState] = useState<CopyState>("idle");
   const [plainCopyState, setPlainCopyState] = useState<CopyState>("idle");
   const userPreference = useRef<Theme | null>(null);
-  const [theme, setTheme] = useState<Theme>(() => {
-    if (typeof window === "undefined") {
-      return "light";
-    }
-    const storedPreference = window.localStorage.getItem("theme");
-    if (storedPreference === "light" || storedPreference === "dark") {
-      return storedPreference;
-    }
-    return window.matchMedia("(prefers-color-scheme: dark)").matches
-      ? "dark"
-      : "light";
-  });
+  const [theme, setTheme] = useState<Theme>("light");
 
   const isDark = theme === "dark";
 
@@ -62,12 +51,24 @@ export default function Home() {
       return;
     }
 
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
     const storedPreference = window.localStorage.getItem("theme");
+
+    const initialTheme: Theme =
+      storedPreference === "light" || storedPreference === "dark"
+        ? storedPreference
+        : mediaQuery.matches
+          ? "dark"
+          : "light";
+
     if (storedPreference === "light" || storedPreference === "dark") {
       userPreference.current = storedPreference;
     }
 
-    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    const frame = window.requestAnimationFrame(() => {
+      setTheme(initialTheme);
+    });
+
     const handleChange = (event: MediaQueryListEvent) => {
       if (userPreference.current) {
         return;
@@ -77,7 +78,10 @@ export default function Home() {
 
     mediaQuery.addEventListener("change", handleChange);
 
-    return () => mediaQuery.removeEventListener("change", handleChange);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      mediaQuery.removeEventListener("change", handleChange);
+    };
   }, []);
 
   useEffect(() => {
