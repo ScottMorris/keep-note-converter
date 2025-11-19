@@ -8,7 +8,10 @@ import {
   useState,
   type ClipboardEvent,
 } from "react";
-import { convertRichTextToKeepMarkup } from "../lib/keepFormatter";
+import {
+  FormatterDiagnostic,
+  convertRichTextToKeepMarkup,
+} from "../lib/keepFormatter";
 import { convertMarkdownToHtml } from "../lib/markdown";
 
 type CopyState = "idle" | "copied" | "error";
@@ -35,6 +38,49 @@ const sampleHtml = `
   </ul>
 `;
 
+type DiagnosticMeta = {
+  title: string;
+  description: string;
+  severity: "info" | "warning";
+};
+
+function describeDiagnostic(diagnostic: FormatterDiagnostic): DiagnosticMeta {
+  switch (diagnostic.kind) {
+    case "unsupported-tag":
+      return {
+        title: `Unsupported <${diagnostic.tag}> element`,
+        description:
+          "This element was flattened because Google Keep ignores it. Copy any important content manually before pasting.",
+        severity: "warning",
+      };
+    case "removed-element":
+      return {
+        title: `Removed <${diagnostic.tag}> block`,
+        description:
+          "Scripts and style tags are stripped out for safety before sending the note to Keep.",
+        severity: "warning",
+      };
+    case "downgraded-heading":
+      return {
+        title: `${diagnostic.from.toUpperCase()} converted to ${diagnostic.to.toUpperCase()}`,
+        description: "Keep supports only H1 and H2, so deeper headings are normalized automatically.",
+        severity: "info",
+      };
+    case "list-flattened":
+      return {
+        title: `Nested list flattened (level ${diagnostic.depth + 1})`,
+        description: "Deeper bullet levels become four-space indented paragraphs to stay compatible with Keep.",
+        severity: "info",
+      };
+    default:
+      return {
+        title: "Converted formatting",
+        description: "Some formatting was adjusted for compatibility.",
+        severity: "info",
+      };
+  }
+}
+
 export default function Home() {
   const editorRef = useRef<HTMLDivElement>(null);
   const [inputHtml, setInputHtml] = useState("");
@@ -50,6 +96,9 @@ export default function Home() {
     () => convertRichTextToKeepMarkup(inputHtml),
     [inputHtml],
   );
+
+  const diagnostics = converted.diagnostics;
+  const hasDiagnostics = diagnostics.length > 0;
 
   const handleEditorInput = () => {
     setInputHtml(editorRef.current?.innerHTML ?? "");
@@ -221,6 +270,14 @@ export default function Home() {
     setInputHtml(sampleHtml);
   };
 
+  const diagnosticsStatusBadgeClass = hasDiagnostics
+    ? isDark
+      ? "bg-amber-400/20 text-amber-100"
+      : "bg-amber-100 text-amber-700"
+    : isDark
+      ? "bg-emerald-400/20 text-emerald-100"
+      : "bg-emerald-50 text-emerald-700";
+
   return (
     <div
       className={`min-h-screen transition-colors duration-500 ${isDark ? "bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-slate-100" : "bg-gradient-to-b from-amber-50 via-orange-50 to-white text-slate-900"}`}
@@ -384,6 +441,75 @@ export default function Home() {
                   </p>
                 )}
               </div>
+            </div>
+
+            <div
+              className={`rounded-2xl border p-4 ${isDark ? "border-slate-800 bg-slate-900/60" : "border-slate-100 bg-slate-50/70"}`}
+            >
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p className={`text-sm font-semibold ${isDark ? "text-slate-100" : "text-slate-900"}`}>
+                    Formatter diagnostics
+                  </p>
+                  <p className={`text-xs ${isDark ? "text-slate-400" : "text-slate-500"}`}>
+                    We&apos;ll flag unsupported elements as you paste.
+                  </p>
+                </div>
+                <span
+                  className={`rounded-full px-3 py-1 text-xs font-semibold ${diagnosticsStatusBadgeClass}`}
+                >
+                  {hasDiagnostics
+                    ? `${diagnostics.length} ${diagnostics.length === 1 ? "issue" : "issues"}`
+                    : "All clear"}
+                </span>
+              </div>
+              {hasDiagnostics ? (
+                <ul className="mt-4 space-y-3">
+                  {diagnostics.map((diagnostic, index) => {
+                    const meta = describeDiagnostic(diagnostic);
+                    const badgeClass =
+                      meta.severity === "warning"
+                        ? isDark
+                          ? "bg-amber-400/20 text-amber-100"
+                          : "bg-amber-100 text-amber-800"
+                        : isDark
+                          ? "bg-slate-800 text-slate-200"
+                          : "bg-slate-200 text-slate-700";
+                    return (
+                      <li
+                        key={`${diagnostic.kind}-${index}`}
+                        className={`rounded-2xl border p-3 text-sm ${isDark ? "border-slate-700 bg-slate-900/70 text-slate-200" : "border-white/60 bg-white/90 text-slate-700"}`}
+                      >
+                        <div className="flex items-center justify-between gap-3">
+                          <p className={`font-semibold ${isDark ? "text-slate-100" : "text-slate-900"}`}>
+                            {meta.title}
+                          </p>
+                          <span
+                            className={`rounded-full px-3 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${badgeClass}`}
+                          >
+                            {meta.severity === "warning" ? "Action" : "FYI"}
+                          </span>
+                        </div>
+                        <p className={`mt-1 text-xs ${isDark ? "text-slate-400" : "text-slate-500"}`}>
+                          {meta.description}
+                        </p>
+                        {diagnostic.kind === "unsupported-tag" && diagnostic.snippet ? (
+                          <code
+                            className={`mt-2 block truncate rounded-xl px-3 py-2 text-[11px] ${isDark ? "bg-slate-900/40 text-slate-200" : "bg-slate-900/5 text-slate-700"}`}
+                          >
+                            {diagnostic.snippet}…
+                          </code>
+                        ) : null}
+                      </li>
+                    );
+                  })}
+                </ul>
+              ) : (
+                <p className={`mt-4 text-sm ${isDark ? "text-slate-400" : "text-slate-500"}`}>
+                  No compatibility issues detected yet. Paste unsupported content to see
+                  suggested fixes here.
+                </p>
+              )}
             </div>
 
             <div>
