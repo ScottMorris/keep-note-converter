@@ -1,7 +1,15 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ClipboardEvent,
+} from "react";
 import { convertRichTextToKeepMarkup } from "../lib/keepFormatter";
+import { convertMarkdownToHtml } from "../lib/markdown";
 
 type CopyState = "idle" | "copied" | "error";
 type Theme = "light" | "dark";
@@ -30,6 +38,7 @@ const sampleHtml = `
 export default function Home() {
   const editorRef = useRef<HTMLDivElement>(null);
   const [inputHtml, setInputHtml] = useState("");
+  const [markdownMode, setMarkdownMode] = useState(false);
   const [richCopyState, setRichCopyState] = useState<CopyState>("idle");
   const [plainCopyState, setPlainCopyState] = useState<CopyState>("idle");
   const userPreference = useRef<Theme | null>(null);
@@ -45,6 +54,34 @@ export default function Home() {
   const handleEditorInput = () => {
     setInputHtml(editorRef.current?.innerHTML ?? "");
   };
+
+  const handlePaste = useCallback(
+    (event: ClipboardEvent<HTMLDivElement>) => {
+      if (!markdownMode) {
+        return;
+      }
+
+      const clipboardText = event.clipboardData?.getData("text/plain") ?? "";
+      if (!clipboardText.trim()) {
+        return;
+      }
+
+      event.preventDefault();
+      const renderedHtml = convertMarkdownToHtml(clipboardText);
+      if (!renderedHtml) {
+        return;
+      }
+
+      if (document.queryCommandSupported?.("insertHTML")) {
+        document.execCommand("insertHTML", false, renderedHtml);
+      } else if (editorRef.current) {
+        editorRef.current.innerHTML = renderedHtml;
+      }
+
+      setInputHtml(editorRef.current?.innerHTML ?? renderedHtml);
+    },
+    [markdownMode],
+  );
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -257,10 +294,29 @@ export default function Home() {
                   Paste or type content
                 </h2>
                 <p className={`text-sm ${isDark ? "text-slate-400" : "text-slate-500"}`}>
-                  Rich text is preserved. Paste directly from Docs, Notion, or the web.
+                  {markdownMode
+                    ? "Markdown is converted into Keep-friendly formatting as you paste."
+                    : "Rich text is preserved. Paste directly from Docs, Notion, or the web."}
                 </p>
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center">
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={markdownMode}
+                  onClick={() => setMarkdownMode((value) => !value)}
+                  className={`inline-flex items-center gap-2 rounded-full border px-4 py-1 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 ${markdownMode ? (isDark ? "border-amber-400/70 bg-slate-900 text-amber-200" : "border-amber-400 bg-amber-50 text-amber-800") : isDark ? "border-slate-700 bg-slate-900/50 text-slate-200" : "border-slate-200 bg-white text-slate-600"}`}
+                >
+                  <span
+                    aria-hidden="true"
+                    className={`relative inline-flex h-5 w-9 items-center rounded-full transition ${markdownMode ? (isDark ? "bg-amber-400" : "bg-amber-500") : isDark ? "bg-slate-600" : "bg-slate-300"}`}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 rounded-full transition ${markdownMode ? "translate-x-4 bg-white" : isDark ? "translate-x-1 bg-slate-200" : "translate-x-1 bg-white"}`}
+                    />
+                  </span>
+                  Markdown paste
+                </button>
                 <button
                   type="button"
                   onClick={loadSample}
@@ -282,7 +338,9 @@ export default function Home() {
                 <span
                   className={`pointer-events-none absolute left-4 top-4 text-sm ${isDark ? "text-slate-500" : "text-slate-400"}`}
                 >
-                  Paste something here (⌘/Ctrl + V) and edit freely…
+                  {markdownMode
+                    ? "Paste Markdown here (⌘/Ctrl + V) to convert instantly…"
+                    : "Paste something here (⌘/Ctrl + V) and edit freely…"}
                 </span>
               )}
               <div
@@ -294,6 +352,7 @@ export default function Home() {
                 aria-label="Formatting editor"
                 data-testid="input-editor"
                 onInput={handleEditorInput}
+                onPaste={handlePaste}
                 suppressContentEditableWarning
               />
             </div>
