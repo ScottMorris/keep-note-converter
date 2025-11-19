@@ -270,6 +270,14 @@ export default function Home() {
     setInputHtml(sampleHtml);
   };
 
+  const diagnosticsStatusBadgeClass = hasDiagnostics
+    ? isDark
+      ? "bg-amber-400/20 text-amber-100"
+      : "bg-amber-100 text-amber-700"
+    : isDark
+      ? "bg-emerald-400/20 text-emerald-100"
+      : "bg-emerald-50 text-emerald-700";
+
   return (
     <div
       className={`min-h-screen transition-colors duration-500 ${isDark ? "bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-slate-100" : "bg-gradient-to-b from-amber-50 via-orange-50 to-white text-slate-900"}`}
@@ -435,18 +443,20 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="rounded-2xl border border-slate-100 bg-slate-50/70 p-4">
+            <div
+              className={`rounded-2xl border p-4 ${isDark ? "border-slate-800 bg-slate-900/60" : "border-slate-100 bg-slate-50/70"}`}
+            >
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                  <p className="text-sm font-semibold text-slate-900">
+                  <p className={`text-sm font-semibold ${isDark ? "text-slate-100" : "text-slate-900"}`}>
                     Formatter diagnostics
                   </p>
-                  <p className="text-xs text-slate-500">
+                  <p className={`text-xs ${isDark ? "text-slate-400" : "text-slate-500"}`}>
                     We&apos;ll flag unsupported elements as you paste.
                   </p>
                 </div>
                 <span
-                  className={`rounded-full px-3 py-1 text-xs font-semibold ${hasDiagnostics ? "bg-amber-100 text-amber-700" : "bg-emerald-50 text-emerald-700"}`}
+                  className={`rounded-full px-3 py-1 text-xs font-semibold ${diagnosticsStatusBadgeClass}`}
                 >
                   {hasDiagnostics
                     ? `${diagnostics.length} ${diagnostics.length === 1 ? "issue" : "issues"}`
@@ -459,24 +469,34 @@ export default function Home() {
                     const meta = describeDiagnostic(diagnostic);
                     const badgeClass =
                       meta.severity === "warning"
-                        ? "bg-amber-100 text-amber-800"
-                        : "bg-slate-200 text-slate-700";
+                        ? isDark
+                          ? "bg-amber-400/20 text-amber-100"
+                          : "bg-amber-100 text-amber-800"
+                        : isDark
+                          ? "bg-slate-800 text-slate-200"
+                          : "bg-slate-200 text-slate-700";
                     return (
                       <li
                         key={`${diagnostic.kind}-${index}`}
-                        className="rounded-2xl border border-white/60 bg-white/90 p-3 text-sm text-slate-700"
+                        className={`rounded-2xl border p-3 text-sm ${isDark ? "border-slate-700 bg-slate-900/70 text-slate-200" : "border-white/60 bg-white/90 text-slate-700"}`}
                       >
                         <div className="flex items-center justify-between gap-3">
-                          <p className="font-semibold text-slate-900">{meta.title}</p>
+                          <p className={`font-semibold ${isDark ? "text-slate-100" : "text-slate-900"}`}>
+                            {meta.title}
+                          </p>
                           <span
                             className={`rounded-full px-3 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${badgeClass}`}
                           >
                             {meta.severity === "warning" ? "Action" : "FYI"}
                           </span>
                         </div>
-                        <p className="mt-1 text-xs text-slate-500">{meta.description}</p>
+                        <p className={`mt-1 text-xs ${isDark ? "text-slate-400" : "text-slate-500"}`}>
+                          {meta.description}
+                        </p>
                         {diagnostic.kind === "unsupported-tag" && diagnostic.snippet ? (
-                          <code className="mt-2 block truncate rounded-xl bg-slate-900/5 px-3 py-2 text-[11px] text-slate-700">
+                          <code
+                            className={`mt-2 block truncate rounded-xl px-3 py-2 text-[11px] ${isDark ? "bg-slate-900/40 text-slate-200" : "bg-slate-900/5 text-slate-700"}`}
+                          >
                             {diagnostic.snippet}…
                           </code>
                         ) : null}
@@ -485,7 +505,7 @@ export default function Home() {
                   })}
                 </ul>
               ) : (
-                <p className="mt-4 text-sm text-slate-500">
+                <p className={`mt-4 text-sm ${isDark ? "text-slate-400" : "text-slate-500"}`}>
                   No compatibility issues detected yet. Paste unsupported content to see
                   suggested fixes here.
                 </p>
