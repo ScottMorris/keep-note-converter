@@ -102,7 +102,7 @@ jobs:
       - name: Cache Playwright browsers
         uses: actions/cache@v4
         with:
-          path: ${{ env.PLAYWRIGHT_BROWSERS_PATH }}
+          path: ${{ runner.temp }}/ms-playwright
           key: playwright-${{ hashFiles('package-lock.json', 'playwright.config.ts') }}
 
       - name: Install Playwright browsers
