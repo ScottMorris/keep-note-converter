@@ -2,6 +2,8 @@
 
 A lightweight PWA that takes any pasted rich text and converts it into formatting that works perfectly in Google Keep. Bold, italic, underline, H1, and H2 headings are preserved, while ordered/unordered lists (and nested indents) are translated into plain text numbers, dashes, and four-space indents so they render consistently inside Keep.
 
+GitHub: https://github.com/ScottMorris/keep-note-converter
+
 ### Features
 
 - Paste directly from Docs, Notion, Writer, or any editor that outputs HTML-rich content.
