@@ -9,7 +9,18 @@ const withPWA = withPWAInit({
   register: true,
 });
 
+const normalizedBasePath = (() => {
+  const raw = process.env.NEXT_PUBLIC_BASE_PATH?.trim() ?? "";
+  const trimmed = raw.replace(/(^\/+|\/+$)/g, "");
+  return trimmed ? `/${trimmed}` : "";
+})();
+
 const nextConfig: NextConfig = {
+  assetPrefix:
+    process.env.NEXT_PUBLIC_ASSET_PREFIX ??
+    (normalizedBasePath ? normalizedBasePath : undefined),
+  basePath: normalizedBasePath || undefined,
+  output: "export",
   turbopack: {},
 };
 

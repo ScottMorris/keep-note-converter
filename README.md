@@ -57,6 +57,13 @@ If you haven’t used Playwright on your machine before, install the browser bin
 npx playwright install
 ```
 
+### GitHub Pages deployment
+
+- The app reads `NEXT_PUBLIC_BASE_PATH` to prefix assets/routes for Pages. The workflow defaults it to `/${repo-name}` (e.g., `/keep-note-converter` for `scottmorris.github.io/keep-note-converter`).
+- Deployments run via `.github/workflows/deploy-pages.yml` on pushes to `main` or via **Run workflow** in GitHub. It exports the static site to `out/` and publishes it to Pages.
+- For a custom domain or a root-level user/organization site, re-run the workflow with the `base_path` input set to `/` (or set `NEXT_PUBLIC_BASE_PATH` yourself when building).
+- To preview the export locally, run `NEXT_PUBLIC_BASE_PATH=/keep-note-converter npm run build` and serve the `out/` directory (e.g., `npx serve out`).
+
 ### Next steps (internal)
 
 - [ ] Add Markdown paste support that converts directly into Keep-friendly formatting
