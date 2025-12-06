@@ -3,6 +3,7 @@ import { defineConfig, devices } from "@playwright/test";
 const PORT = process.env.PORT ? Number(process.env.PORT) : 3000;
 const HOST = process.env.HOST || "127.0.0.1";
 const baseURL = process.env.PLAYWRIGHT_TEST_BASE_URL || `http://${HOST}:${PORT}`;
+const shouldStartServer = process.env.PLAYWRIGHT_SKIP_WEBSERVER !== "true";
 
 export default defineConfig({
   testDir: "./tests/e2e",
@@ -30,12 +31,12 @@ export default defineConfig({
       use: { ...devices["Desktop Firefox"] },
     },
   ],
-  webServer: process.env.PLAYWRIGHT_TEST_BASE_URL
-    ? undefined
-    : {
+  webServer: shouldStartServer
+    ? {
         command: `npm run dev -- --hostname 0.0.0.0 --port ${PORT}`,
         port: PORT,
-        reuseExistingServer: !process.env.CI,
+        reuseExistingServer: true,
         timeout: 120_000,
-      },
+      }
+    : undefined,
 });
