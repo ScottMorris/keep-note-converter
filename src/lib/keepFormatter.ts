@@ -194,7 +194,7 @@ function convertList(
 
     const inlineContent = childNodes
       .filter((child) => !nested.includes(child as Element))
-      .map((child) => serializeNode(child, true, depth))
+      .map((child) => serializeNode(child, true, depth, diagnostics))
       .join("")
       .trim();
 
