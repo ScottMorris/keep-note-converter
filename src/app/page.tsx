@@ -283,7 +283,16 @@ export default function Home() {
       className={`min-h-screen transition-colors duration-500 ${isDark ? "bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-slate-100" : "bg-gradient-to-b from-amber-50 via-orange-50 to-white text-slate-900"}`}
     >
       <main className="mx-auto flex max-w-6xl flex-col gap-10 px-4 py-10 sm:px-6 lg:px-8">
-        <div className="flex justify-center lg:justify-end">
+        <div className="flex flex-wrap items-center justify-center gap-3 lg:justify-between">
+          <a
+            href="https://github.com/ScottMorris/keep-note-converter"
+            target="_blank"
+            rel="noreferrer"
+            className={`inline-flex items-center gap-2 rounded-full border px-4 py-1 text-sm font-semibold transition ${isDark ? "border-slate-700 bg-slate-950/70 text-slate-100 hover:border-indigo-300 hover:text-indigo-100" : "border-amber-200 bg-white/80 text-amber-700 hover:border-amber-300 hover:text-amber-900"} `}
+          >
+            <span aria-hidden>↗</span>
+            View on GitHub
+          </a>
           <button
             type="button"
             onClick={toggleTheme}
