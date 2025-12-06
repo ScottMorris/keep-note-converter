@@ -2,7 +2,9 @@ import { expect, test } from "@playwright/test";
 
 test.describe("Keep note converter", () => {
   test("loads the homepage and handles sample content", async ({ page }) => {
-    await page.goto("/");
+    const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
+    const target = basePath || "/";
+    await page.goto(target);
 
     await expect(
       page.getByRole("heading", {
